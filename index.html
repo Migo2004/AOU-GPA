@@ -1,150 +1,428 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AOU GPA - Manual Control</title>
-    <style>
-        :root { --primary: #1a2a6c; --danger: #b21f1f; --bg: #f0f2f5; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; }
-        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 700px; }
-        .header { background: var(--primary); color: white; padding: 20px; border-radius: 15px; margin-bottom: 25px; text-align: center; }
-        .top-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .top-grid div { background: #f8f9fa; padding: 15px; border-radius: 12px; border: 1px solid #ddd; }
-        label { display: block; font-size: 11px; font-weight: bold; color: #666; margin-bottom: 5px; }
-        input { width: 90%; border: 1px solid #ccc; padding: 8px; border-radius: 6px; font-weight: bold; font-size: 16px; }
-        .row { display: grid; grid-template-columns: 2fr 1.5fr 1fr; gap: 10px; margin-bottom: 12px; }
-        .btn-check { background: var(--danger); color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 10px; font-weight: bold; }
-        .btn-calc { background: var(--primary); color: white; border: none; padding: 18px; border-radius: 12px; cursor: pointer; font-size: 18px; width: 100%; font-weight: bold; margin-top: 20px; }
-        .results { margin-top: 30px; padding: 25px; border-radius: 15px; border: 3px solid var(--primary); display: none; background: white; text-align: center; }
-        .gpa-display { font-size: 55px; font-weight: 900; color: var(--primary); margin: 10px 0; }
-        table { width: 100%; margin-top: 15px; border-collapse: collapse; }
-        th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; font-size: 14px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AOU GPA Calculator</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 24px 16px; min-height: 100vh; }
+.wrap { width: 100%; max-width: 680px; }
+.section-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 14px;
+  padding: 1.1rem 1.3rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.section-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #888;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.field { position: relative; }
+.field label { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #555; margin-bottom: 4px; font-weight: 500; }
+.max-hint {
+  display: inline-block;
+  font-size: 10px;
+  color: #999;
+  background: #f0f0f0;
+  border: 1px solid #e4e4e4;
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.field input, .field select {
+  width: 100%;
+  font-size: 15px;
+  padding: 9px 11px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  outline: none;
+  background: white;
+  color: #111;
+  transition: border-color 0.15s, background 0.15s;
+}
+.field input:focus { border-color: #555; }
+.field input.shake {
+  border-color: #e53935;
+  background: #fff5f5;
+  animation: shake 0.3s ease;
+}
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  25%      { transform: translateX(-5px); }
+  75%      { transform: translateX(5px); }
+}
+.error-msg {
+  font-size: 11px;
+  color: #e53935;
+  font-weight: 500;
+  margin-top: 3px;
+  height: 0;
+  overflow: hidden;
+  transition: height 0.2s;
+}
+.error-msg.show { height: 16px; }
+.cgpa-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 14px;
+  color: #666;
+  margin-top: 10px;
+}
+.cgpa-pill span { font-size: 18px; font-weight: 600; color: #111; }
+.col-headers {
+  display: grid;
+  grid-template-columns: minmax(0,2fr) minmax(0,1.2fr) minmax(0,1fr) 34px;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.col-headers span { font-size: 11px; color: #999; font-weight: 500; }
+.module-row {
+  display: grid;
+  grid-template-columns: minmax(0,2fr) minmax(0,1.2fr) minmax(0,1fr) 34px;
+  gap: 8px;
+  align-items: start;
+  margin-bottom: 6px;
+}
+.module-row .field input, .module-row .field select {
+  font-size: 14px;
+  padding: 7px 9px;
+}
+.del-btn {
+  background: none;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  width: 34px;
+  height: 34px;
+  cursor: pointer;
+  font-size: 18px;
+  color: #aaa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: 0.15s;
+}
+.del-btn:hover { background: #fff0f0; color: #e53935; border-color: #e53935; }
+.add-btn {
+  background: none;
+  border: 1px dashed #ccc;
+  border-radius: 8px;
+  width: 100%;
+  padding: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #888;
+  margin-top: 4px;
+  transition: 0.15s;
+}
+.add-btn:hover { background: #f5f5f5; border-color: #999; color: #555; }
+.calc-btn {
+  width: 100%;
+  padding: 13px;
+  background: #1a1a1a;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: background 0.15s;
+}
+.calc-btn:hover:not(:disabled) { background: #333; }
+.calc-btn:disabled { background: #ccc; cursor: not-allowed; }
+.reset-btn {
+  width: 100%;
+  padding: 9px;
+  background: none;
+  color: #888;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 13px;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: 0.15s;
+}
+.reset-btn:hover { background: #f5f5f5; color: #555; }
+.results-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 14px;
+  padding: 1.3rem;
+  margin-top: 1rem;
+  display: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.gpa-big { font-size: 52px; font-weight: 700; color: #111; line-height: 1; }
+.status-badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 6px;
+  margin-top: 5px;
+}
+.status-good { background: #e8f5e9; color: #2e7d32; }
+.status-mid  { background: #fff8e1; color: #f57f17; }
+.status-bad  { background: #ffebee; color: #c62828; }
+.res-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 14px; }
+.res-table th { font-size: 11px; font-weight: 600; color: #999; text-align: left; padding: 6px 0; border-bottom: 1px solid #eee; }
+.res-table td { padding: 7px 0; border-bottom: 1px solid #f0f0f0; color: #222; }
+.grade-pill { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 5px; }
+.grade-good { background: #e8f5e9; color: #2e7d32; }
+.grade-mid  { background: #fff8e1; color: #f57f17; }
+.grade-bad  { background: #ffebee; color: #c62828; }
+.meta-row { display: flex; gap: 20px; margin-top: 12px; flex-wrap: wrap; }
+.meta-item { font-size: 13px; color: #888; }
+.meta-item b { color: #111; font-weight: 600; }
+.cumulative-row { margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px; display: none; }
+.cum-title { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+.cum-gpa { font-size: 28px; font-weight: 700; color: #111; }
+</style>
 </head>
 <body>
+<div class="wrap">
 
-<div class="card">
-    <div class="header">
-        <h2 style="margin:0">Academic GPA Tracker</h2>
+  <div class="section-card">
+    <div class="section-title">Previous semester data (optional)</div>
+    <div class="grid-2">
+      <div class="field">
+        <label>Total points <span class="max-hint"></span></label>
+        <input type="number" id="old-p" min="0"
+          oninput="clamp(this, 535, 'err-p', 'Cannot exceed 535 points')">
+        <div class="error-msg" id="err-p"></div>
+      </div>
+      <div class="field">
+        <label>Total hours <span class="max-hint"></span></label>
+        <input type="number" id="old-h" min="0"
+          oninput="clamp(this, 132, 'err-h', 'Cannot exceed 132 hours')">
+        <div class="error-msg" id="err-h"></div>
+      </div>
     </div>
-
-    <div class="top-grid">
-        <div>
-            <label>PREVIOUS POINTS (MAX 700)</label>
-            <input type="number" id="old-p" placeholder="0-700" 
-                   oninput="if(value > 700) value = 700; if(value < 0) value = 0;">
-        </div>
-        <div>
-            <label>PREVIOUS HOURS (MAX 132)</label>
-            <input type="number" id="old-h" placeholder="0-132" 
-                   oninput="if(value > 132) value = 132; if(value < 0) value = 0;">
-        </div>
+    <div class="cgpa-pill" id="cgpa-display" style="display:none">
+      Previous CGPA: <span id="cgpa-val">—</span>
     </div>
-    
-    <button class="btn-check" onclick="checkOld()">Check Previous GPA</button>
+  </div>
 
-    <div id="modules" style="margin-top:25px;"></div>
-
-    <button class="btn-calc" onclick="calculate()">Calculate Semester & Cumulative GPA</button>
-
-    <div id="res-box" class="results">
-        <div id="msg" style="font-size: 20px; font-weight: bold;"></div>
-        <div class="gpa-display" id="final-gpa">0.00</div>
-        <table>
-            <thead><tr><th>Module</th><th>Hours</th><th>Grade</th><th>Points</th></tr></thead>
-            <tbody id="res-table"></tbody>
-        </table>
-        <div id="total-info" style="margin-top:20px; font-weight:bold; color:#555;"></div>
+  <div class="section-card">
+    <div class="section-title">This semester's modules</div>
+    <div class="col-headers">
+      <span>Module name</span>
+      <span>Score <span style="color:#bbb;font-size:10px">(MAX 100)</span></span>
+      <span>Credit hours</span>
+      <span></span>
     </div>
+    <div id="modules-list"></div>
+    <button class="add-btn" onclick="addModule()">+ Add module</button>
+  </div>
+
+  <button class="calc-btn" id="calc-btn" onclick="calculate()">Calculate GPA</button>
+  <button class="reset-btn" onclick="resetAll()">Reset everything</button>
+
+  <div class="results-card" id="res-card">
+    <div style="display:flex; align-items:baseline; gap:14px; flex-wrap:wrap;">
+      <div class="gpa-big" id="res-gpa">0.00</div>
+      <div>
+        <div style="font-size:13px; color:#888;">Semester GPA</div>
+        <div class="status-badge" id="res-badge"></div>
+      </div>
+    </div>
+    <table class="res-table">
+      <thead><tr><th>Module</th><th>Score</th><th>Grade</th><th>Points earned</th><th>Hours</th></tr></thead>
+      <tbody id="res-tbody"></tbody>
+    </table>
+    <div class="meta-row" id="res-meta"></div>
+    <div class="cumulative-row" id="res-cumulative">
+      <div class="cum-title">Cumulative CGPA (including this semester)</div>
+      <div class="cum-gpa" id="cum-gpa-val">—</div>
+      <div class="meta-row" id="cum-meta"></div>
+    </div>
+  </div>
+
 </div>
-
 <script>
-    const container = document.getElementById('modules');
-    const hrs = [3, 4, 5, 8];
+let moduleCount = 0;
+let modules = [];
+const defaultHours = [3,3,3,4,4,4,8,8];
 
-    for(let i=1; i<=8; i++) {
-        let dH = i <= 3 ? 3 : (i <= 6 ? 4 : 8);
-        container.innerHTML += `
-            <div class="row">
-                <input type="text" class="m-name" placeholder="Module Name ${i}">
-                <input type="number" class="m-score" placeholder="0-100" oninput="validateInput(this, 100)">
-                <select class="m-hour">
-                    ${hrs.map(h => `<option value="${h}" ${h === dH ? 'selected' : ''}>${h} Hours</option>`).join('')}
-                </select>
-            </div>
-        `;
-    }
+function clamp(input, max, errId, msg) {
+  const v = parseFloat(input.value);
+  const errEl = document.getElementById(errId);
+  if (!isNaN(v) && v > max) {
+    input.value = max;
+    input.classList.remove('shake');
+    void input.offsetWidth;
+    input.classList.add('shake');
+    errEl.textContent = msg;
+    errEl.classList.add('show');
+    setTimeout(() => {
+      input.classList.remove('shake');
+      errEl.classList.remove('show');
+    }, 2500);
+  } else {
+    input.classList.remove('shake');
+    errEl.classList.remove('show');
+  }
+  updateCgpa();
+}
 
-    function validateInput(el, max) {
-        if (parseFloat(el.value) > max) {
-            el.value = ""; 
-            alert("Value cannot exceed " + max);
-        }
-    }
+function clampScore(input, id) {
+  const v = parseFloat(input.value);
+  const errEl = document.getElementById('err-s-' + id);
+  if (!isNaN(v) && v > 100) {
+    input.value = 100;
+    input.classList.remove('shake');
+    void input.offsetWidth;
+    input.classList.add('shake');
+    errEl.textContent = 'Cannot exceed 100';
+    errEl.classList.add('show');
+    setTimeout(() => {
+      input.classList.remove('shake');
+      errEl.classList.remove('show');
+    }, 2500);
+  } else {
+    input.classList.remove('shake');
+    errEl.classList.remove('show');
+  }
+}
 
-    function getGradeData(s) {
-        if (s >= 90) return { p: 4.0, g: "A" };
-        if (s >= 82) return { p: 3.5, g: "B+" };
-        if (s >= 74) return { p: 3.0, g: "B" };
-        if (s >= 66) return { p: 2.5, g: "C+" };
-        if (s >= 58) return { p: 2.0, g: "C" };
-        if (s >= 50) return { p: 1.5, g: "D" };
-        return { p: 0.0, g: "F" };
-    }
+function updateCgpa() {
+  const pv = parseFloat(document.getElementById('old-p').value);
+  const hv = parseFloat(document.getElementById('old-h').value);
+  if (!isNaN(hv) && hv > 0 && !isNaN(pv) && pv >= 0) {
+    document.getElementById('cgpa-display').style.display = 'flex';
+    document.getElementById('cgpa-val').textContent = (pv / hv).toFixed(2);
+  } else {
+    document.getElementById('cgpa-display').style.display = 'none';
+  }
+}
 
-    function checkOld() {
-        let p = parseFloat(document.getElementById('old-p').value) || 0;
-        let h = parseFloat(document.getElementById('old-h').value) || 0;
-        // تأكيد إضافي عند الضغط على الزرار
-        if (p > 700) { document.getElementById('old-p').value = 700; p = 700; }
-        if (h > 132) { document.getElementById('old-h').value = 132; h = 132; }
-        if(h > 0) alert("Your Previous GPA: " + (p / h).toFixed(2));
-    }
+function getGrade(s) {
+  if (s >= 90) return { pts: 4.0, label: "A",  cls: "grade-good" };
+  if (s >= 82) return { pts: 3.5, label: "B+", cls: "grade-good" };
+  if (s >= 74) return { pts: 3.0, label: "B",  cls: "grade-good" };
+  if (s >= 66) return { pts: 2.5, label: "C+", cls: "grade-mid" };
+  if (s >= 58) return { pts: 2.0, label: "C",  cls: "grade-mid" };
+  if (s >= 50) return { pts: 1.5, label: "D",  cls: "grade-mid" };
+  return { pts: 0.0, label: "F", cls: "grade-bad" };
+}
 
-    function calculate() {
-        let op = parseFloat(document.getElementById('old-p').value) || 0;
-        let oh = parseFloat(document.getElementById('old-h').value) || 0;
+function addModule(name="", score="", hours=null) {
+  const id = moduleCount++;
+  const defaultH = hours ?? (defaultHours[modules.length] || 3);
+  modules.push(id);
 
-        let curP = 0, curH = 0, tableRows = "";
-        const scores = document.querySelectorAll('.m-score');
-        const mHrs = document.querySelectorAll('.m-hour');
-        const names = document.querySelectorAll('.m-name');
+  const row = document.createElement('div');
+  row.className = 'module-row';
+  row.id = 'row-' + id;
+  row.innerHTML = `
+    <div class="field">
+      <input type="text" id="mn-${id}" placeholder="Module ${modules.indexOf(id)+1}" value="${name}">
+    </div>
+    <div class="field">
+      <input type="number" id="ms-${id}" placeholder="0 – 100" min="0" max="100" step="0.01"
+        value="${score}" oninput="clampScore(this, ${id})">
+      <div class="error-msg" id="err-s-${id}"></div>
+    </div>
+    <div class="field">
+      <select id="mh-${id}">
+        <option value="3" ${defaultH==3?'selected':''}>3 hours</option>
+        <option value="4" ${defaultH==4?'selected':''}>4 hours</option>
+        <option value="5" ${defaultH==5?'selected':''}>5 hours</option>
+        <option value="8" ${defaultH==8?'selected':''}>8 hours</option>
+      </select>
+    </div>
+    <button class="del-btn" onclick="removeModule(${id})" title="Remove">×</button>
+  `;
+  document.getElementById('modules-list').appendChild(row);
+}
 
-        scores.forEach((input, i) => {
-            let s = parseFloat(input.value);
-            let h = parseFloat(mHrs[i].value);
-            let n = names[i].value || `Module ${i+1}`;
-            
-            if(!isNaN(s)) {
-                let data = getGradeData(s);
-                let earnedPoints = data.p * h; 
-                curP += earnedPoints;
-                curH += h;
-                tableRows += `<tr><td>${n}</td><td>${h}</td><td>${data.g}</td><td>${earnedPoints.toFixed(1)}</td></tr>`;
-            }
-        });
+function removeModule(id) {
+  const idx = modules.indexOf(id);
+  if (idx > -1) modules.splice(idx, 1);
+  const row = document.getElementById('row-' + id);
+  if (row) row.remove();
+}
 
-        let totalH = curH + oh;
-        let totalP = curP + op;
+function calculate() {
+  let semPts = 0, semHrs = 0, rows = '', hasData = false;
 
-        if(totalH > 132) { alert("Total hours exceed 132 limit!"); return; }
+  modules.forEach(id => {
+    const nameEl  = document.getElementById('mn-' + id);
+    const scoreEl = document.getElementById('ms-' + id);
+    const hoursEl = document.getElementById('mh-' + id);
+    if (!scoreEl || scoreEl.value === '') return;
+    const s = parseFloat(scoreEl.value);
+    const h = parseFloat(hoursEl.value);
+    const name = nameEl.value.trim() || ('Module ' + (modules.indexOf(id)+1));
+    if (isNaN(s)) return;
+    const g = getGrade(s);
+    const earned = g.pts * h;
+    semPts += earned; semHrs += h; hasData = true;
+    rows += `<tr>
+      <td>${name}</td><td>${s.toFixed(0)}</td>
+      <td><span class="grade-pill ${g.cls}">${g.label}</span></td>
+      <td>${earned.toFixed(1)}</td><td>${h}</td>
+    </tr>`;
+  });
 
-        let gpa = totalH > 0 ? (totalP / totalH) : 0;
-        
-        document.getElementById('res-box').style.display = "block";
-        document.getElementById('final-gpa').innerText = gpa.toFixed(2);
-        document.getElementById('res-table').innerHTML = tableRows;
-        document.getElementById('total-info').innerText = `Total Points: ${totalP.toFixed(2)} | Total Hours: ${totalH}`;
+  if (!hasData) { alert('Please enter at least one module score.'); return; }
 
-        const m = document.getElementById('msg');
-        if (gpa >= 3.0) { m.innerText = "ألف مبروك يا بطل! استمر 🔥"; m.style.color = "#27ae60"; }
-        else if (gpa >= 2.0) { m.innerText = "جيد، لكن تقدر تجيب أحسن.. شد حيلك!"; m.style.color = "#f39c12"; }
-        else { m.innerText = "ربنا يوفقك.. شد حيلك ولسه!"; m.style.color = "#e74c3c"; }
+  const semGpa = semHrs > 0 ? semPts / semHrs : 0;
+  document.getElementById('res-gpa').textContent = semGpa.toFixed(2);
+  document.getElementById('res-tbody').innerHTML = rows;
 
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-    }
+  const badge = document.getElementById('res-badge');
+  if (semGpa >= 3.0)      { badge.textContent = 'Great work';        badge.className = 'status-badge status-good'; }
+  else if (semGpa >= 2.0) { badge.textContent = 'Keep going';        badge.className = 'status-badge status-mid'; }
+  else                    { badge.textContent = 'Needs improvement'; badge.className = 'status-badge status-bad'; }
+
+  document.getElementById('res-meta').innerHTML = `
+    <div class="meta-item">Semester points: <b>${semPts.toFixed(2)}</b></div>
+    <div class="meta-item">Semester hours: <b>${semHrs}</b></div>`;
+
+  const oldP = parseFloat(document.getElementById('old-p').value);
+  const oldH = parseFloat(document.getElementById('old-h').value);
+  const cumDiv = document.getElementById('res-cumulative');
+  if (!isNaN(oldP) && !isNaN(oldH) && oldH > 0) {
+    const totP = oldP + semPts, totH = oldH + semHrs;
+    const cumGpa = totH > 0 ? totP / totH : 0;
+    cumDiv.style.display = 'block';
+    document.getElementById('cum-gpa-val').textContent = cumGpa.toFixed(2);
+    document.getElementById('cum-meta').innerHTML = `
+      <div class="meta-item">Total points: <b>${totP.toFixed(2)}</b></div>
+      <div class="meta-item">Total hours: <b>${totH}</b></div>`;
+  } else { cumDiv.style.display = 'none'; }
+
+  document.getElementById('res-card').style.display = 'block';
+  document.getElementById('res-card').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function resetAll() {
+  document.getElementById('old-p').value = '';
+  document.getElementById('old-h').value = '';
+  document.getElementById('modules-list').innerHTML = '';
+  modules = []; moduleCount = 0;
+  document.getElementById('res-card').style.display = 'none';
+  document.getElementById('cgpa-display').style.display = 'none';
+  for (let i = 0; i < 5; i++) addModule();
+}
+
+for (let i = 0; i < 5; i++) addModule();
 </script>
-
 </body>
 </html>

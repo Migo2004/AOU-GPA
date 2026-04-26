@@ -202,13 +202,13 @@ body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; 
     <div class="grid-2">
       <div class="field">
         <label>Total points <span class="max-hint"></span></label>
-        <input type="number" id="old-p" placeholder= min="0"
+        <input type="number" id="old-p" placeholder="0" min="0"
           oninput="clamp(this, 535, 'err-p', 'Cannot exceed 535 points')">
         <div class="error-msg" id="err-p"></div>
       </div>
       <div class="field">
         <label>Total hours <span class="max-hint"></span></label>
-        <input type="number" id="old-h" placeholder=" min="0"
+        <input type="number" id="old-h" placeholder="0" min="0"
           oninput="clamp(this, 132, 'err-h', 'Cannot exceed 132 hours')">
         <div class="error-msg" id="err-h"></div>
       </div>
@@ -340,10 +340,10 @@ function addModule(name="", score="", hours=null) {
     </div>
     <div class="field">
       <select id="mh-${id}">
-        <option value="3" ${defaultH==3?'selected':''}>3 hours</option>
-        <option value="4" ${defaultH==4?'selected':''}>4 hours</option>
-        <option value="5" ${defaultH==5?'selected':''}>5 hours</option>
-        <option value="8" ${defaultH==8?'selected':''}>8 hours</option>
+        <option value="3" ${defaultH==3?'selected':''}>3</option>
+        <option value="4" ${defaultH==4?'selected':''}>4</option>
+        <option value="5" ${defaultH==5?'selected':''}>5</option>
+        <option value="8" ${defaultH==8?'selected':''}>8</option>
       </select>
     </div>
     <button class="del-btn" onclick="removeModule(${id})" title="Remove">×</button>

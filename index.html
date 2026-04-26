@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AOU GPA - Manual Control</title>
+    <style>
+        :root { --primary: #1a2a6c; --danger: #b21f1f; --bg: #f0f2f5; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; }
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 700px; }
+        .header { background: var(--primary); color: white; padding: 20px; border-radius: 15px; margin-bottom: 25px; text-align: center; }
+        .top-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .top-grid div { background: #f8f9fa; padding: 15px; border-radius: 12px; border: 1px solid #ddd; }
+        label { display: block; font-size: 11px; font-weight: bold; color: #666; margin-bottom: 5px; }
+        input { width: 90%; border: 1px solid #ccc; padding: 8px; border-radius: 6px; font-weight: bold; font-size: 16px; }
+        .row { display: grid; grid-template-columns: 2fr 1.5fr 1fr; gap: 10px; margin-bottom: 12px; }
+        .btn-check { background: var(--danger); color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 10px; font-weight: bold; }
+        .btn-calc { background: var(--primary); color: white; border: none; padding: 18px; border-radius: 12px; cursor: pointer; font-size: 18px; width: 100%; font-weight: bold; margin-top: 20px; }
+        .results { margin-top: 30px; padding: 25px; border-radius: 15px; border: 3px solid var(--primary); display: none; background: white; text-align: center; }
+        .gpa-display { font-size: 55px; font-weight: 900; color: var(--primary); margin: 10px 0; }
+        table { width: 100%; margin-top: 15px; border-collapse: collapse; }
+        th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="header">
+        <h2 style="margin:0">Academic GPA Tracker</h2>
+    </div>
+
+    <div class="top-grid">
+        <div>
+            <label>PREVIOUS POINTS (MAX 700)</label>
+            <input type="number" id="old-p" placeholder="0-700" 
+                   oninput="if(value > 700) value = 700; if(value < 0) value = 0;">
+        </div>
+        <div>
+            <label>PREVIOUS HOURS (MAX 132)</label>
+            <input type="number" id="old-h" placeholder="0-132" 
+                   oninput="if(value > 132) value = 132; if(value < 0) value = 0;">
+        </div>
+    </div>
+    
+    <button class="btn-check" onclick="checkOld()">Check Previous GPA</button>
+
+    <div id="modules" style="margin-top:25px;"></div>
+
+    <button class="btn-calc" onclick="calculate()">Calculate Semester & Cumulative GPA</button>
+
+    <div id="res-box" class="results">
+        <div id="msg" style="font-size: 20px; font-weight: bold;"></div>
+        <div class="gpa-display" id="final-gpa">0.00</div>
+        <table>
+            <thead><tr><th>Module</th><th>Hours</th><th>Grade</th><th>Points</th></tr></thead>
+            <tbody id="res-table"></tbody>
+        </table>
+        <div id="total-info" style="margin-top:20px; font-weight:bold; color:#555;"></div>
+    </div>
+</div>
+
+<script>
+    const container = document.getElementById('modules');
+    const hrs = [3, 4, 5, 8];
+
+    for(let i=1; i<=8; i++) {
+        let dH = i <= 3 ? 3 : (i <= 6 ? 4 : 8);
+        container.innerHTML += `
+            <div class="row">
+                <input type="text" class="m-name" placeholder="Module Name ${i}">
+                <input type="number" class="m-score" placeholder="0-100" oninput="validateInput(this, 100)">
+                <select class="m-hour">
+                    ${hrs.map(h => `<option value="${h}" ${h === dH ? 'selected' : ''}>${h} Hours</option>`).join('')}
+                </select>
+            </div>
+        `;
+    }
+
+    function validateInput(el, max) {
+        if (parseFloat(el.value) > max) {
+            el.value = ""; 
+            alert("Value cannot exceed " + max);
+        }
+    }
+
+    function getGradeData(s) {
+        if (s >= 90) return { p: 4.0, g: "A" };
+        if (s >= 82) return { p: 3.5, g: "B+" };
+        if (s >= 74) return { p: 3.0, g: "B" };
+        if (s >= 66) return { p: 2.5, g: "C+" };
+        if (s >= 58) return { p: 2.0, g: "C" };
+        if (s >= 50) return { p: 1.5, g: "D" };
+        return { p: 0.0, g: "F" };
+    }
+
+    function checkOld() {
+        let p = parseFloat(document.getElementById('old-p').value) || 0;
+        let h = parseFloat(document.getElementById('old-h').value) || 0;
+        // تأكيد إضافي عند الضغط على الزرار
+        if (p > 700) { document.getElementById('old-p').value = 700; p = 700; }
+        if (h > 132) { document.getElementById('old-h').value = 132; h = 132; }
+        if(h > 0) alert("Your Previous GPA: " + (p / h).toFixed(2));
+    }
+
+    function calculate() {
+        let op = parseFloat(document.getElementById('old-p').value) || 0;
+        let oh = parseFloat(document.getElementById('old-h').value) || 0;
+
+        let curP = 0, curH = 0, tableRows = "";
+        const scores = document.querySelectorAll('.m-score');
+        const mHrs = document.querySelectorAll('.m-hour');
+        const names = document.querySelectorAll('.m-name');
+
+        scores.forEach((input, i) => {
+            let s = parseFloat(input.value);
+            let h = parseFloat(mHrs[i].value);
+            let n = names[i].value || `Module ${i+1}`;
+            
+            if(!isNaN(s)) {
+                let data = getGradeData(s);
+                let earnedPoints = data.p * h; 
+                curP += earnedPoints;
+                curH += h;
+                tableRows += `<tr><td>${n}</td><td>${h}</td><td>${data.g}</td><td>${earnedPoints.toFixed(1)}</td></tr>`;
+            }
+        });
+
+        let totalH = curH + oh;
+        let totalP = curP + op;
+
+        if(totalH > 132) { alert("Total hours exceed 132 limit!"); return; }
+
+        let gpa = totalH > 0 ? (totalP / totalH) : 0;
+        
+        document.getElementById('res-box').style.display = "block";
+        document.getElementById('final-gpa').innerText = gpa.toFixed(2);
+        document.getElementById('res-table').innerHTML = tableRows;
+        document.getElementById('total-info').innerText = `Total Points: ${totalP.toFixed(2)} | Total Hours: ${totalH}`;
+
+        const m = document.getElementById('msg');
+        if (gpa >= 3.0) { m.innerText = "ألف مبروك يا بطل! استمر 🔥"; m.style.color = "#27ae60"; }
+        else if (gpa >= 2.0) { m.innerText = "جيد، لكن تقدر تجيب أحسن.. شد حيلك!"; m.style.color = "#f39c12"; }
+        else { m.innerText = "ربنا يوفقك.. شد حيلك ولسه!"; m.style.color = "#e74c3c"; }
+
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+</script>
+
+</body>
+</html>

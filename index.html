@@ -201,14 +201,14 @@ body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; 
     <div class="section-title">Previous semester data (optional)</div>
     <div class="grid-2">
       <div class="field">
-        <label>Total points <span class="max-hint">MAX 535</span></label>
-        <input type="number" id="old-p" placeholder="e.g. 320" min="0"
+        <label>Total points <span class="max-hint"></span></label>
+        <input type="number" id="old-p" placeholder= min="0"
           oninput="clamp(this, 535, 'err-p', 'Cannot exceed 535 points')">
         <div class="error-msg" id="err-p"></div>
       </div>
       <div class="field">
-        <label>Total hours <span class="max-hint">MAX 132</span></label>
-        <input type="number" id="old-h" placeholder="e.g. 96" min="0"
+        <label>Total hours <span class="max-hint"></span></label>
+        <input type="number" id="old-h" placeholder=" min="0"
           oninput="clamp(this, 132, 'err-h', 'Cannot exceed 132 hours')">
         <div class="error-msg" id="err-h"></div>
       </div>
